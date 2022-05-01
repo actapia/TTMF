@@ -3,6 +3,15 @@
 from pygraph.classes.digraph import digraph
 import os
 
+from tqdm import tqdm
+
+import concurrent.futures
+from more_itertools import chunked
+
+import argparse
+
+from IPython import embed
+
 class PRIterator:
     __doc__ = '''计算一张图中的PR值'''
 
@@ -14,7 +23,7 @@ class PRIterator:
         self.graph = dg
 
     def page_rank(self):
-        print('******')
+        #print('******')
         cout =0
          # 先将图中没有出链的节点改为对所有节点都有出链
         for node in self.graph.nodes():
@@ -22,13 +31,14 @@ class PRIterator:
                 cout +=1
                 # print(cout)
                 digraph.add_edge(self.graph, (node, node), wt=0.5)
-                digraph.add_edge(self.graph, (node, core_node), wt=0.5)
+                if not node == self.core_node:
+                    digraph.add_edge(self.graph, (node, self.core_node), wt=0.5)
                 # for node2 in self.graph.nodes():
                 #     # print('$$$$$$$')
                 #     if node !=node2:
                 #         digraph.add_edge(self.graph, (node, node2),wt=float(1/len(self.graph.nodes())))
 
-        print(cout)
+                #print(cout)
 
         nodes = self.graph.nodes()
         graph_size = len(nodes)
@@ -38,10 +48,10 @@ class PRIterator:
 
         # page_rank = dict.fromkeys(nodes, 1.0 / graph_size)  # 给每个节点赋予初始的PR值
         page_rank = dict.fromkeys(nodes, 0.0)  # 给每个节点赋予初始的PR值
-        page_rank[core_node] = 1.0
+        page_rank[self.core_node] = 1.0
         # print(page_rank)
         damping_value = (1.0 - self.damping_factor) / graph_size  # 公式中的(1−α)/N部分
-        print('start iterating...')
+        #print('start iterating...')
         flag = False
         for i in range(self.max_iterations):
             change = 0
@@ -67,55 +77,68 @@ class PRIterator:
                 # print("\n\nfinished in %s iterations!" % i)
                 break
         if flag == False:
-            print("finished out of %s iterations!" % self.max_iterations)
+            pass
+            #print("finished out of %s iterations!" % self.max_iterations)
         return page_rank
 
+def compute_pagerank(dir_files, file_subGraphs, file_entityRank):
+    try:
+        pid, dir_files = dir_files
+        if pid == 0:
+            dir_files = tqdm(dir_files)
+        for files in dir_files:
+            file = open(file_subGraphs+files, "r")
+            dg = digraph()
+            core_node = os.path.splitext(files)[0]
+            #print('corenode----',core_node)
+            for i, line in enumerate(file):
+                if i == 0:
+                    list = line.rstrip('\t\n').rstrip('\t').rstrip('\n').split("\t")
+                    for n in list:
+                        dg.add_node(n.strip("\t").strip("\n"))
+                else:
 
-if __name__ == '__main__':
-    # dg = digraph()
-    #
-    # dg.add_nodes(["A", "B", "C", "D", "E"])
-    #
-    # dg.add_edge(("A", "B"), wt=199)
-    # dg.add_edge(("A", "C"), wt=14)
-    # dg.add_edge(("A", "D"), wt=100)
-    # dg.add_edge(("B", "D"), wt=124)
-    # dg.add_edge(("C", "E"), wt=1000)
-    # dg.add_edge(("D", "E"), wt=13)
-    # dg.add_edge(("B", "E"), wt=16)
-    # dg.add_edge(("E", "A"), wt=18)
-    # core_node = 'A'
+                    list = line.split("\t")
+                    # dg.add_edge((list[0], list[1]), wt=int(list[2].strip("\n")))
+                    dg.add_edge((list[0], list[1]), wt=list[2].strip("\n"))
+            #print('dg size...', dg.nodes().__len__())
 
-    file_data = "/Users/shengbinjia/Documents/GitHub/TCdata"
-    file_entityRank = file_data + "/entityRank_4/"
-    file_subGraphs = file_data + "/subGraphs_4/"
+            pr = PRIterator(dg, core_node)
+            page_ranks = pr.page_rank()
 
-    for files in os.listdir(file_subGraphs):
-        file = open(file_subGraphs+files, "r")
-        dg = digraph()
-        core_node = os.path.splitext(files)[0]
-        print('corenode----',core_node)
-        for i, line in enumerate(file):
-            if i == 0:
-                list = line.rstrip('\t\n').rstrip('\t').rstrip('\n').split("\t")
-                for n in list:
-                    dg.add_node(n.strip("\t").strip("\n"))
-            else:
+            # print("The final page rank is\n", page_ranks)
+            fo = open(file_entityRank + core_node + ".txt", "w")
+            for key in page_ranks.keys():
+                fo.write(key +"\t" + str(page_ranks.get(key)) + "\n")
+            fo.close()
+            file.close()
+    except Exception as e:
+        print("ERROR!")
+        raise e
 
-                list = line.split("\t")
-                # dg.add_edge((list[0], list[1]), wt=int(list[2].strip("\n")))
-                dg.add_edge((list[0], list[1]), wt=list[2].strip("\n"))
-        print('dg size...', dg.nodes().__len__())
 
-        pr = PRIterator(dg, core_node)
-        page_ranks = pr.page_rank()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--threads", type=int, default=1)
+    args = parser.parse_args()
+    file_data = "../data/TCdata"
+    file_entityRank = file_data + "/entityRank_4_2/"
+    file_subGraphs = file_data + "/subGraphs_4_2/"
+    filelist = os.listdir(file_subGraphs)
+    #embed()
+    with concurrent.futures.ProcessPoolExecutor(max_workers=args.threads) as executor:
+        write_futures = [executor.submit(compute_pagerank,
+                                         chunk,
+                                         file_subGraphs=str(file_subGraphs),
+                                         file_entityRank=str(file_entityRank))
+                         for chunk in enumerate(chunked(filelist, len(filelist)//args.threads))
+                         ]
+        for future in concurrent.futures.as_completed(write_futures):
+            res = future.result()
+                
 
-        # print("The final page rank is\n", page_ranks)
-        fo = open(file_entityRank + core_node + ".txt", "w")
-        for key in page_ranks.keys():
-            fo.write(key +"\t" + str(page_ranks.get(key)) + "\n")
-        fo.close()
-        file.close()
+
+
 
     # {'A': 0.29633523435739856, 'B': 0.11396164973459627, 'C': 0.11396164973459627, 'D': 0.16239535087179965,
     #  'E': 0.31333715165264}
@@ -138,3 +161,23 @@ if __name__ == '__main__':
     #     fin.close()
     #     fo.close()
 
+
+
+
+if __name__ == '__main__':
+    main()
+    # dg = digraph()
+    #
+    # dg.add_nodes(["A", "B", "C", "D", "E"])
+    #
+    # dg.add_edge(("A", "B"), wt=199)
+    # dg.add_edge(("A", "C"), wt=14)
+    # dg.add_edge(("A", "D"), wt=100)
+    # dg.add_edge(("B", "D"), wt=124)
+    # dg.add_edge(("C", "E"), wt=1000)
+    # dg.add_edge(("D", "E"), wt=13)
+    # dg.add_edge(("B", "E"), wt=16)
+    # dg.add_edge(("E", "A"), wt=18)
+    # core_node = 'A'
+
+    

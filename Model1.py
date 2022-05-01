@@ -2,13 +2,14 @@ import pickle
 import os.path
 import numpy as np
 from PrecessData import get_data
+import tensorflow.keras as keras
 from keras.layers.core import Dropout,Flatten
 from keras.layers.merge import concatenate
 from keras.layers import TimeDistributed, Input, Bidirectional, Dense, Embedding, LSTM, SimpleRNN, RepeatVector,add,subtract,dot
 from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras import optimizers
-from keras.layers.normalization import BatchNormalization
+from keras.layers.normalization.batch_normalization import BatchNormalization
 from keras.callbacks import Callback
 from keras import regularizers
 # from keras.losses import my_cross_entropy_withWeight
@@ -161,7 +162,7 @@ def SelectModel(modelname, entvocabsize, relvocabsize, ent2vec, rel2vec,
                 input_path_lenth,
                 ent_emd_dim, rel_emd_dim):
     nn_model = None
-    if modelname is 'creat_Model_BiLSTM_BP':
+    if modelname == 'creat_Model_BiLSTM_BP':
         nn_model = creat_Model_BiLSTM_BP( entvocabsize = entvocabsize,
                                          relvocabsize = relvocabsize,
                                          ent2vec = ent2vec, rel2vec =rel2vec,
@@ -890,7 +891,8 @@ def infer_model(modelname, entityRank, datafile, modelfile, resultfile, batch_si
 
 
 def get_goldtriples():
-    path = "/Users/shengbinjia/Documents/GitHub/TCdata/FB15K/golddataset/"
+    file_data = os.path.join(os.getcwd(), "data")
+    path = os.path.join(file_data, "FB15K/golddataset/")
     goldtriples = []
 
     files = os.listdir(path)
@@ -910,13 +912,16 @@ if __name__ == "__main__":
     modelname = 'creat_Model_BiLSTM_BP'
 
     print(modelname)
-    file_data = "/Users/shengbinjia/Documents/GitHub/TCdata"
+    file_data = os.path.join(os.getcwd(), "data")
+    fb15k_data = os.path.join(file_data, "FB15K")
+    fb15k_kbc_data = os.path.join(fb15k_data, "KBCdataset")
+    kbe_15k_data = os.path.join(file_data, "KBE/datasets/FB15k")
 
-    entity2idfile = file_data + "/FB15K/entity2id.txt"
-    relation2idfile = file_data + "/FB15K/relation2id.txt"
+    entity2idfile = os.path.join(fb15k_data, "entity2id.txt")
+    relation2idfile = os.path.join(fb15k_data, "relation2id.txt")
 
-    entity2vecfile =file_data + "/FB15K_TransE_Entity2Vec_100.txt"
-    relation2vecfile = file_data + "/FB15K_TransE_Relation2Vec_100.txt"
+    entity2vecfile = os.path.join(file_data, "FB15K_TransE_Entity2Vec_100.txt")
+    relation2vecfile = os.path.join(file_data, "FB15K_TransE_Relation2Vec_100.txt")
 
     # entity2vecfile =file_data + "/FB15K_PTransE_Entity2Vec_100.txt"
     # relation2vecfile = file_data + "/FB15K_PTransE_Relation2Vec_100.txt"
@@ -924,15 +929,15 @@ if __name__ == "__main__":
     # entity2vecfile =file_data + "/FB15K_TransH_Entity2Vec_100.txt"
     # relation2vecfile = file_data + "/FB15K_TransH_Relation2Vec_100.txt"
 
-    trainfile = file_data + "/KBE/datasets/FB15k/conf_train2id.txt"
+    trainfile = os.path.join(kbe_15k_data, "conf_train2id.txt")
     # devfile = file_data + "/KBE/datasets/FB15k/test2id.txt"
-    testfile = file_data + "/KBE/datasets/FB15k/conf_test2id.txt"
-    testfile_KGC_h_t = file_data + "/FB15K/KBCdataset/h_t.txt"
-    testfile_KGC_hr_ = file_data + "/FB15K/KBCdataset/hr_.txt"
-    testfile_KGC__rt = file_data + "/FB15K/KBCdataset/_rt.txt"
+    testfile = os.path.join(kbe_15k_data, "conf_test2id.txt")
+    testfile_KGC_h_t = os.path.join(fb15k_kbc_data, "h_t.txt")
+    testfile_KGC_hr_ = os.path.join(fb15k_kbc_data, "hr_.txt")
+    testfile_KGC__rt = os.path.join(fb15k_kbc_data, "_rt.txt")
 
-    path_file = file_data + "/Path_4/"
-    entityRank = file_data + "/ResourceRank_4/"
+    path_file = os.path.join(file_data, "Path_4/")
+    entityRank = os.path.join(file_data, "ResourceRank_4/")
 
     datafile = "./model/data2_TransE.pkl"
     modelfile = "./model/model2_TransE.h5"
@@ -954,7 +959,8 @@ if __name__ == "__main__":
              testfile_KGC__rt=testfile_KGC__rt,
              path_file=path_file, max_p=3,
              entityRank=entityRank,
-             datafile=datafile)
+             datafile=datafile
+                 )
     if not os.path.exists(modelfile):
         print("data has extisted: " + datafile)
         print("Training model....")

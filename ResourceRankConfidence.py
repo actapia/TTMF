@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import math
+#from pygraph.classes.digraph import digraph
 from pygraph.classes.digraph import digraph
 # import numpy as np
 from numpy import *
+
+from tqdm import tqdm
 
 def get_data_txt(trainfile):
     train_triple = []
@@ -95,7 +98,8 @@ def get_RRankConfidence(threshold_dict, tcDevExamples, dict_entityRank):
         if triple[0] in threshold_dict.keys():
             threshold = threshold_dict[triple[0]]
         else:
-            print('threshold is None !!!!!!!!')
+            # ACT: Don't know if this is bad.
+            #print('threshold is None !!!!!!!!')
             threshold = 0.5
         rankvalue = 0.0
 
@@ -121,7 +125,7 @@ def get_f(head, tail, threshold_dict,dict_entityRank):
     if head in threshold_dict.keys():
         threshold = threshold_dict[head]
     else:
-        print('threshold is None !!!!!!!!')
+        #print('threshold is None !!!!!!!!')
         threshold = 0.5
 
     f = 0.001
@@ -180,14 +184,15 @@ def get_features_2file(dict_entityRank, file_subGraphs, threshold_dict, file_RRf
     features = []
     classlabels = []
 
-    for id in range(12000, 14952):
+    for fn in tqdm(os.listdir(file_subGraphs)):
+        file = open(file_subGraphs + fn, "r")
+        core_node = fn.split('.')[0]
+        id = int(core_node)
         fw = open(file_RRfeatures + str(id) + '.txt', 'w')
         print(id)
 
-        core_node = str(id)
-        print('corenode----', core_node)
+        #print('corenode----', core_node)
 
-        file = open(file_subGraphs + core_node + '.txt', "r")
         dg = digraph()
         lines = file.readlines()
         for i, line in enumerate(lines):
@@ -234,7 +239,7 @@ def get_features_2file(dict_entityRank, file_subGraphs, threshold_dict, file_RRf
             rr = get_f(int(core_node), int(d), threshold_dict, dict_entityRank)
 
             depth = depdict[d]
-            print(d, rr, rudu[core_node], chudu[core_node], rudu[d], chudu[d], depth)
+            #print(d, rr, rudu[core_node], chudu[core_node], rudu[d], chudu[d], depth)
 
             fw.write(d + '\t' + str(rr) +'\t'+
                      str(rudu[core_node]) +'\t'+ str(chudu[core_node]) +'\t'+
@@ -329,10 +334,10 @@ def LogisticRegression(dict_features, file_subGraphs, trainExamples, testExample
 
 if __name__ == "__main__":
 
-    file_data = "/Users/shengbinjia/Documents/GitHub/TCdata"
+    file_data = "../data/TCdata"
     #
     # # file_entityRank = file_data + "/ResourceRank_4/"
-    file_subGraphs = file_data + "/subGraphs_4/"
+    file_subGraphs = file_data + "/subGraphs_4_2/"
     #
     # entity2idfile = file_data + "/FB15K/entity2id.txt"
     # relation2idfile = file_data + "/FB15K/relation2id.txt"
@@ -346,8 +351,8 @@ if __name__ == "__main__":
     # dev_transE_file = file_data + "/KBE/datasets/FB15k/test_TransE_confidence.txt"
     # test_transE_file = file_data + "/KBE/datasets/FB15k/test_TransE_confidence.txt"
     # path_file = file_data + "/Path_4/"
-    entityRank = file_data + "/entityRank_4/"
-    file_RRfeatures = file_data + "/ResourceRank_4/"
+    entityRank = file_data + "/entityRank_4_2/"
+    file_RRfeatures = file_data + "/ResourceRank_4_2/"
 
     print('start...')
 
@@ -358,7 +363,12 @@ if __name__ == "__main__":
 
 
     trainExamples, confidence = get_data_txt(trainfile)
+
+    print("Begin threshold computation.")
+    
     threshold_dict = rrcThreshold(trainExamples, dict_entityRank)
+
+    print("Begin features2file.")
     get_features_2file(dict_entityRank, file_subGraphs, threshold_dict, file_RRfeatures)
 
 

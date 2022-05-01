@@ -60,12 +60,12 @@ def DFS(dict, dg, node, depth=3):
 
 if __name__ == '__main__':
 
-    file_data = "/Users/shengbinjia/Documents/GitHub/TCdata"
+    file_data = "../data/TCdata/"
     file_entity = file_data + "/FB15K/entity2id.txt"
     file_train = file_data + "/FB15K/golddataset/train2id.txt"
     file_test = file_data + "/FB15K/golddataset/test2id.txt"
     file_valid = file_data + "/FB15K/golddataset/valid2id.txt"
-    file_subGraphs = file_data + "/subGraphs_4/"
+    file_subGraphs = file_data + "/subGraphs_4_2/"
 
     dict = ReadAllTriples([file_train, file_test, file_valid])
     print("dict size--", dict.__len__())
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
         dg = digraph()
         dg.add_node(node0)
-        t1 = time.clock()
+        t1 = time.perf_counter()
         dg = DFS(dict, dg, node0, depth=4)
 
         fo = open(file_subGraphs + node0 + ".txt", "w")
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
 
 
-        t2=time.clock()
+        t2=time.perf_counter()
         # time.sleep(1)
         print(t2-t1)
         # print(dg.nodes().__len__())

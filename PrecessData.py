@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from pygraph.classes.digraph import digraph
+#from pygraph.classes.digraph import digraph
 import os
 from search import ReadAllTriples
 from ResourceRankConfidence import get_RRankConfidence, rrcThreshold
