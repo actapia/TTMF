@@ -53,7 +53,7 @@ Some steps of this process can be time-consuming. If you are using a machine wit
 
 `ResourceRankConfidence.py` can be run in parallel as well, but each process requires a relatively large amount of memory. The memory usage per process seems to be roughly 32 GB per 500,000 triples. Hence, if you 64 GB of memory, you can use two processes for `ResourceRankConfidence.py`. By default, this step runs with just one process. You can change the number of processes by editing the `RESOURCE_RANK_THREADS` constant in the `generate_intermediate.sh` script.
 
-You must also specify a directory in which to store intermediate files. Optionally, you can specify a count of the number of incorrect triples to generate for each correct triple when generating the <h, r, _>, <h, _, t>, and <_, r, t> triples.
+You must also specify a directory in which to store intermediate files. Optionally, you can specify a count of the number of incorrect triples to generate for each correct triple when generating the <h, r, \_>, <h, \_, t>, and <\_, r, t> triples.
 
 ```bash
 bash full_run.sh --train-file /path/to/train/file.txt \
@@ -79,7 +79,7 @@ python find_errors.py --data-dir intermed --threshold 0.1
 Alternatively, to get the k triples with lowest confidence, use a command like this.
 
 ```bash
-bash find_errors.py --data-dir intermed --top 10
+python find_errors.py --data-dir intermed --top 10
 ```
 
 ## Citation
