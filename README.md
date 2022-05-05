@@ -2,7 +2,7 @@
 
 This is a fork of the original [Triple Trustworthiness Measurement for Knowledge Graph](https://github.com/TJUNLP/TTMF) repository with various improvements. I have included in this repository additional code for computing embeddings originally provided only through a separate download as well as various convenience scripts for performing pre-processing and running the full TTMF pipelines. I hope you find these useful.
 
-This README is specifically for this fork of TTMF. You can find the original README file [here](README.md).
+This README is specifically for this fork of TTMF. You can find the original README file [here](README.orig.md).
 
 ## Requirements
 
