@@ -1,6 +1,10 @@
 from TransConfidence import *
 import PrecessData
-from IPython import embed
+
+try:
+    from IPython import embed
+except ImportError:
+    pass
 
 if __name__ == "__main__":
 
@@ -55,5 +59,5 @@ if __name__ == "__main__":
     tcTestExamples, confidence = PrecessData.get_data_txt(testfile)
     cdic_test= get_TransConfidence(threshold_dict, tcTestExamples, entity2vec, relation2vec)
 
-    embed()
+    #embed()
 

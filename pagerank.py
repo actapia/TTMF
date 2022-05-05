@@ -10,7 +10,10 @@ from more_itertools import chunked
 
 import argparse
 
-from IPython import embed
+try:
+    from IPython import embed
+except ImportError:
+    pass
 
 class PRIterator:
     __doc__ = '''计算一张图中的PR值'''

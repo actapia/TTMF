@@ -4,7 +4,10 @@ import sys
 
 import pandas as pd
 
-from IPython import embed
+try:
+    from IPython import embed
+except ImportError:
+    pass
 
 def read_2id_file(path):
     with open(path, "r") as _2id_file:
@@ -33,7 +36,15 @@ if __name__ == "__main__":
         print("Must supply threshold or top.")
         sys.exit(1)
     if not args.confidence_file:
-        args.confidence_file = os.path.join(args.data_dir, "result/Model1_model_TransE-test---train_conf1.txt")
+        test_conf = os.path.join(args.data_dir, "result/Model1_model_TransE-test---train_conf1.txt")
+        valid_conf = os.path.join(args.data_dir, "result/Model1_model_TransE-valid---train_conf1.txt")
+        if os.path.exists(test_conf):
+            if os.path.exists(valid_conf):
+                print(f"Both {test_conf} and {valid_conf} present.\nYou must use --confidence-file to specify which to use.")
+            else:
+                args.confidence_file = test_conf
+        else:
+            args.confidence_file = valid_conf
     if not args.test_file:
         args.test_file = os.path.join(args.data_dir, "valid2id.txt")
     id2entity = read_2id_file(os.path.join(args.data_dir, "entity2id.txt"))

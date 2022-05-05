@@ -11,7 +11,10 @@ from PrecessData import load_vec_txt,get_index
 from tqdm import tqdm
 from more_itertools import chunked
 import time
-from IPython import embed
+try:
+    from IPython import embed
+except ImportError:
+    pass
 import concurrent
 import concurrent.futures
 

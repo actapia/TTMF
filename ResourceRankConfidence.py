@@ -16,7 +16,10 @@ from more_itertools import chunked
 
 from tqdm import tqdm
 
-from IPython import embed
+try:
+    from IPython import embed
+except ImportError:
+    pass
 
 def get_data_txt(trainfile):
     train_triple = []

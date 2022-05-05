@@ -25,7 +25,7 @@ else
 fi
 # ResourceRankConfidence uses much more memory than other scripts.
 # This value may need to be changed depending on how much memory your system has.
-readonly RESOURCE_RANK_THREADS=2
+readonly RESOURCE_RANK_THREADS=1
 cd "$DIR"
 python get_triples/process_triples.py --project-root "$orig_pwd" --properties-file "${MYARGS[config]}" --data-out "${MYARGS[intermediate-dir]}" --incorrect-count "$incorrect_count"
 python SearchPaths2.py -t "$threads" --file-data "${MYARGS[intermediate-dir]}"
