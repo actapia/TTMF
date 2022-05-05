@@ -18,6 +18,8 @@ from ResourceRankConfidence import get_RRankConfidence
 from TransConfidence import get_TransConfidence
 from PrecessData import get_dict_entityRank
 
+import argparse
+
 def creat_Model_BiLSTM_BP(entvocabsize, relvocabsize, ent2vec, rel2vec, input_path_lenth,
                           ent_emd_dim, rel_emd_dim):
 
@@ -474,6 +476,8 @@ def test_model(model,
     fin1 = open(resultfile + 'train_conf1.txt', 'w')
     # print(results)
     for i, res in enumerate(results):
+        #print(res, res[0] + res[1])
+        # Note: res[0] + res[1] == 1
         tag = np.argmax(res)
         # print(res)
         # tag = 0
@@ -768,7 +772,7 @@ def test_model_load(model, ent_idex_word, rel_idex_word, test_triple,
 
 
 
-def infer_model(modelname, entityRank, datafile, modelfile, resultfile, batch_size=50):
+def infer_model(modelname, entityRank, datafile, modelfile, resultfile, test_type, batch_size=50):
 
     ent_vocab, ent_idex_word, rel_vocab, rel_idex_word, \
     entity2vec, entity2vec_dim, \
@@ -821,20 +825,22 @@ def infer_model(modelname, entityRank, datafile, modelfile, resultfile, batch_si
     model.load_weights(modelfile)
     # nnmodel = load_model(lstm_modelfile)
 
-    # acc = test_model(model,
-    #                  input_test_h, input_test_t, input_test_r,
-    #                  test_path_h, test_path_t, test_path_r,
-    #                  test_path2_h, test_path2_t, test_path2_r,
-    #                  test_path3_h, test_path3_t, test_path3_r,
-    #                  test_transE, test_rrank, test_confidence, resultfile)
-    # print(acc)
+    if test_type == "test":
+        print("Testing with test.")
+        acc = test_model(model,
+                         input_test_h, input_test_t, input_test_r,
+                         test_path_h, test_path_t, test_path_r,
+                         test_path2_h, test_path2_t, test_path2_r,
+                         test_path3_h, test_path3_t, test_path3_r,
+                         test_transE, test_rrank, test_confidence, resultfile)
 
-    acc = test_model(model,
-                     input_train_h, input_train_t, input_train_r,
-                  train_path_h, train_path_t, train_path_r,
-                  train_path2_h, train_path2_t, train_path2_r,
-                  train_path3_h, train_path3_t, train_path3_r,
-                  train_transE, train_rrank, train_confidence, resultfile)
+    else:
+        acc = test_model(model,
+                         input_train_h, input_train_t, input_train_r,
+                      train_path_h, train_path_t, train_path_r,
+                      train_path2_h, train_path2_t, train_path2_r,
+                      train_path3_h, train_path3_t, train_path3_r,
+                      train_transE, train_rrank, train_confidence, resultfile)
     print(acc)
 
     # test_model_PR(model,
@@ -908,20 +914,28 @@ def get_goldtriples():
     return goldtriples
 
 if __name__ == "__main__":
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file-data", required=True)
+    parser.add_argument("--test", choices=["none", "valid", "test"])
+    args = parser.parse_args()
+    
     modelname = 'creat_Model_BiLSTM_BP'
 
     print(modelname)
-    file_data = os.path.join(os.getcwd(), "data")
-    fb15k_data = os.path.join(file_data, "FB15K")
-    fb15k_kbc_data = os.path.join(fb15k_data, "KBCdataset")
-    kbe_15k_data = os.path.join(file_data, "KBE/datasets/FB15k")
+    #file_data = os.path.join(os.getcwd(), "data")
+    #fb15k_data = os.path.join(file_data, "FB15K")
+    #fb15k_kbc_data = os.path.join(fb15k_data, "KBCdataset")
+    #kbe_15k_data = os.path.join(file_data, "KBE/datasets/FB15k")
 
-    entity2idfile = os.path.join(fb15k_data, "entity2id.txt")
-    relation2idfile = os.path.join(fb15k_data, "relation2id.txt")
+    #entity2idfile = os.path.join(fb15k_data, "entity2id.txt")
+    entity2idfile = os.path.join(args.file_data, "entity2id.txt")
+    #relation2idfile = os.path.join(fb15k_data, "relation2id.txt")
+    relation2idfile = os.path.join(args.file_data, "relation2id.txt")
 
-    entity2vecfile = os.path.join(file_data, "FB15K_TransE_Entity2Vec_100.txt")
-    relation2vecfile = os.path.join(file_data, "FB15K_TransE_Relation2Vec_100.txt")
+    #entity2vecfile = os.path.join(file_data, "FB15K_TransE_Entity2Vec_100.txt")
+    entity2vecfile = os.path.join(args.file_data, "TransE_entity_embeddings.txt")    
+    #relation2vecfile = os.path.join(file_data, "FB15K_TransE_Relation2Vec_100.txt")
+    relation2vecfile = os.path.join(args.file_data, "TransE_relation_embeddings.txt")
 
     # entity2vecfile =file_data + "/FB15K_PTransE_Entity2Vec_100.txt"
     # relation2vecfile = file_data + "/FB15K_PTransE_Relation2Vec_100.txt"
@@ -929,24 +943,45 @@ if __name__ == "__main__":
     # entity2vecfile =file_data + "/FB15K_TransH_Entity2Vec_100.txt"
     # relation2vecfile = file_data + "/FB15K_TransH_Relation2Vec_100.txt"
 
-    trainfile = os.path.join(kbe_15k_data, "conf_train2id.txt")
+    #trainfile = os.path.join(kbe_15k_data, "conf_train2id.txt")
+    trainfile = os.path.join(args.file_data, "conf_valid2id.txt")
     # devfile = file_data + "/KBE/datasets/FB15k/test2id.txt"
-    testfile = os.path.join(kbe_15k_data, "conf_test2id.txt")
-    testfile_KGC_h_t = os.path.join(fb15k_kbc_data, "h_t.txt")
-    testfile_KGC_hr_ = os.path.join(fb15k_kbc_data, "hr_.txt")
-    testfile_KGC__rt = os.path.join(fb15k_kbc_data, "_rt.txt")
+    #testfile = os.path.join(kbe_15k_data, "conf_test2id.txt")
+    testfile = os.path.join(args.file_data, "conf_test2id.txt")
+    #testfile_KGC_h_t = os.path.join(fb15k_kbc_data, "h_t.txt")
+    testfile_KGC_h_t = os.path.join(args.file_data, "h_t.txt")
+    #testfile_KGC_hr_ = os.path.join(fb15k_kbc_data, "hr_.txt")
+    testfile_KGC_hr_ = os.path.join(args.file_data, "hr_.txt")
+    #testfile_KGC__rt = os.path.join(fb15k_kbc_data, "_rt.txt")
+    testfile_KGC__rt = os.path.join(args.file_data, "_rt.txt")
 
-    path_file = os.path.join(file_data, "Path_4/")
-    entityRank = os.path.join(file_data, "ResourceRank_4/")
+    #path_file = os.path.join(file_data, "Path_4_3/")
+    path_file = os.path.join(args.file_data, "Path_4/")
+    #entityRank = os.path.join(file_data, "ResourceRank_4_2/")
+    entityRank = os.path.join(args.file_data, "ResourceRank_4/")
 
-    datafile = "./model/data2_TransE.pkl"
-    modelfile = "./model/model2_TransE.h5"
-    resultdir = "./data/result/"
-    resultdir = "./data/result/Model1_model_TransE_---"
+    #datafile = "./model/data2_TransE.pkl"
+    model_dir = os.path.join(args.file_data, "model")
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+    datafile = os.path.join(model_dir, "data2_TransE.pkl")
+    #modelfile = "./model/model2_TransE.h5"
+    modelfile = os.path.join(model_dir, "model2_TransE.h5")
+    #resultdir = "./data/result/"
+    main_result_dir = os.path.join(args.file_data, "result")
+    if not os.path.exists(main_result_dir):
+        os.mkdir(main_result_dir)
+    #resultdir = "./data/result/Model1_model_TransE_---"
+    if args.test == "valid":
+        resultdir = os.path.join(main_result_dir, "Model1_model_TransE-valid---")
+    elif args.test == "test":
+        resultdir = os.path.join(main_result_dir, "Model1_model_TransE-test---")
+    else:
+        resultdir = os.path.join(main_result_dir, "Model1_model_TransE---")
 
     batch_size = 64
     retrain = False
-    Test = True
+    Test = (args.test != "none")
     valid = False
     Label = False
     if not os.path.exists(datafile):
@@ -976,4 +1011,4 @@ if __name__ == "__main__":
     if Test:
         print("test EE model....")
         print(modelfile)
-        infer_model(modelname, entityRank, datafile, modelfile, resultdir, batch_size=batch_size)
+        infer_model(modelname, entityRank, datafile, modelfile, resultdir, args.test, batch_size=batch_size)

@@ -1,0 +1,29 @@
+{
+    "options":
+    [
+	{
+	    "long_name": "threads",
+	    "short_name": "t",
+	    "has_arg": "REQUIRED_ARGUMENT",
+	    "optional": true
+	},
+	{
+	    "long_name": "config",
+	    "short_name": "c",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "incorrect-count",
+	    "short_name": "I",
+	    "has_arg": "REQUIRED_ARGUMENT",
+	    "optional": true
+	},
+
+	{
+	    "long_name": "intermediate-dir",
+	    "short_name": "i",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	}
+    ],
+    "help": true
+}

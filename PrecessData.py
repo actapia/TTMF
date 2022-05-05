@@ -183,7 +183,9 @@ def get_path_index(trainfile_path, max_p, train_triple, topk):
                 length = len(tri)-1
             f.close()
         else:
-            print(fstr, 'Not find the path file!!!!!')
+            #print(fstr, 'Not find the path file!!!!!')
+            #raise Exception("Path file not found.")
+            pass
         for i in range(0, max_p - length):
             ph.append(0)
             pt.append(0)

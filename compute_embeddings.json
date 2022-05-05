@@ -1,0 +1,26 @@
+{
+    "options":
+    [
+	{
+	    "long_name": "train-file",
+	    "short_name": "t",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "dev-file",
+	    "short_name": "d",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "test-file",
+	    "short_name": "T",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "intermediate-dir",
+	    "short_name": "i",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	}
+    ],
+    "help": true
+}

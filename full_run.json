@@ -1,0 +1,41 @@
+{
+    "options":
+    [
+	{
+	    "long_name": "train-file",
+	    "short_name": "t",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "dev-file",
+	    "short_name": "d",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "test-file",
+	    "short_name": "T",
+	    "has_arg": "REQUIRED_ARGUMENT"
+	},
+	{
+	    "long_name": "intermediate-dir",
+	    "short_name": "i",
+	    "has_arg": "REQUIRED_ARGUMENT",
+	    "help": "Intermediate storage and output directory."
+	},
+	{
+	    "long_name": "processes",
+	    "short_name": "p",
+	    "has_arg": "REQUIRED_ARGUMENT",
+	    "optional": true,
+	    "help": "Number of processes to run with."
+	},
+	{
+	    "long_name": "incorrect-count",
+	    "short_name": "I",
+	    "has_arg": "REQUIRED_ARGUMENT",
+	    "optional": true,
+	    "help": "Number of incorrect examples to generate."
+	}
+    ],
+    "help": true
+}

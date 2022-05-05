@@ -120,11 +120,14 @@ def compute_pagerank(dir_files, file_subGraphs, file_entityRank):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--threads", type=int, default=1)
+    parser.add_argument("--file-data", required=True)
     args = parser.parse_args()
-    file_data = "../data/TCdata"
-    file_entityRank = file_data + "/entityRank_4_2/"
-    file_subGraphs = file_data + "/subGraphs_4_2/"
+    #file_data = "../data/TCdata"
+    file_entityRank = os.path.join(args.file_data, "entityRank_4/")
+    file_subGraphs = os.path.join(args.file_data, "subGraphs_4/")
     filelist = os.listdir(file_subGraphs)
+    if not os.path.exists(file_entityRank):
+        os.mkdir(file_entityRank)
     #embed()
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.threads) as executor:
         write_futures = [executor.submit(compute_pagerank,

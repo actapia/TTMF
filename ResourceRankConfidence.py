@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 import os
+import gc
 import math
 #from pygraph.classes.digraph import digraph
 from pygraph.classes.digraph import digraph
 # import numpy as np
 from numpy import *
+import numpy as np
+
+import argparse
+
+import concurrent.futures
+
+from more_itertools import chunked
 
 from tqdm import tqdm
+
+from IPython import embed
 
 def get_data_txt(trainfile):
     train_triple = []
@@ -131,7 +141,10 @@ def get_f(head, tail, threshold_dict,dict_entityRank):
     f = 0.001
     if tail in dict_entityRank[head].keys():
         rankvalue = dict_entityRank[head][tail]
-        f = 1.0 / (1.0 + math.exp(-25 * (rankvalue - threshold)))
+        try:
+            f = 1.0 / (1.0 + np.exp(-25 * (rankvalue - threshold)))
+        except OverflowError:
+            embed()
 
     return f
 
@@ -179,73 +192,81 @@ def get_graph(file_subGraphs):
 
     return core_node, dg
 
-def get_features_2file(dict_entityRank, file_subGraphs, threshold_dict, file_RRfeatures):
+def get_features_2file(filelist, dict_entityRank, file_subGraphs, threshold_dict, file_RRfeatures):
+    try:
+        pid, filelist = filelist
+        if pid == 0:
+            filelist = tqdm(filelist)
 
-    features = []
-    classlabels = []
+        features = []
+        classlabels = []
 
-    for fn in tqdm(os.listdir(file_subGraphs)):
-        file = open(file_subGraphs + fn, "r")
-        core_node = fn.split('.')[0]
-        id = int(core_node)
-        fw = open(file_RRfeatures + str(id) + '.txt', 'w')
-        print(id)
+        for fn in filelist:
+            file = open(file_subGraphs + fn, "r")
+            core_node = fn.split('.')[0]
+            id = int(core_node)
+            fw = open(file_RRfeatures + str(id) + '.txt', 'w')
+            #print(id)
 
-        #print('corenode----', core_node)
+            #print('corenode----', core_node)
 
-        dg = digraph()
-        lines = file.readlines()
-        for i, line in enumerate(lines):
-            if i == 0:
-                list = line.rstrip('\t\n').rstrip('\t').rstrip('\n').split("\t")
-                for n in list:
-                    dg.add_node(n.strip("\t").strip("\n"))
-            else:
+            dg = digraph()
+            lines = file.readlines()
+            file.close()
+            for i, line in enumerate(lines):
+                if i == 0:
+                    list = line.rstrip('\t\n').rstrip('\t').rstrip('\n').split("\t")
+                    for n in list:
+                        dg.add_node(n.strip("\t").strip("\n"))
+                else:
 
-                list = line.rstrip('\n').split("\t")
-                # dg.add_edge((list[0], list[1]), wt=int(list[2].strip("\n")))
-                dg.add_edge((list[0], list[1]))
-        # print('dg size...', dg.nodes().__len__())
-
-
-        rudu = {}
-        chudu = {}
-        for d in dg.nodes():
-            rudu[d] = len(dg.incidents(d))
-            chudu[d] = len(dg.neighbors(d))
-
-        depdict = {core_node: 0}
-        list = dg.neighbors(core_node)
-        list2 = [0] * len(list)
-        # i = 0
-        while list.__len__()>0:
-            node = list[0]
-            # print(node)
-            if node not in depdict.keys():
-
-                depdict[node] = list2[0]+1
-
-                for node2 in dg.neighbors(node):
-                    if node2 not in depdict.keys():
-                        list.append(node2)
-                        list2.append(depdict[node])
-            del list[0]
-            del list2[0]
+                    list = line.rstrip('\n').split("\t")
+                    # dg.add_edge((list[0], list[1]), wt=int(list[2].strip("\n")))
+                    dg.add_edge((list[0], list[1]))
+            # print('dg size...', dg.nodes().__len__())
 
 
-        for d in dg.nodes():
+            rudu = {}
+            chudu = {}
+            for d in dg.nodes():
+                rudu[d] = len(dg.incidents(d))
+                chudu[d] = len(dg.neighbors(d))
 
-            # rr = dict_entityRank[int(core_node)][int(d)]
-            rr = get_f(int(core_node), int(d), threshold_dict, dict_entityRank)
+            depdict = {core_node: 0}
+            list = dg.neighbors(core_node)
+            list2 = [0] * len(list)
+            # i = 0
+            while list.__len__()>0:
+                node = list[0]
+                # print(node)
+                if node not in depdict.keys():
 
-            depth = depdict[d]
-            #print(d, rr, rudu[core_node], chudu[core_node], rudu[d], chudu[d], depth)
+                    depdict[node] = list2[0]+1
 
-            fw.write(d + '\t' + str(rr) +'\t'+
-                     str(rudu[core_node]) +'\t'+ str(chudu[core_node]) +'\t'+
-                     str(rudu[d]) +'\t'+ str(chudu[d]) +'\t'+
-                     str(depth) + '\n')
-        fw.close()
+                    for node2 in dg.neighbors(node):
+                        if node2 not in depdict.keys():
+                            list.append(node2)
+                            list2.append(depdict[node])
+                del list[0]
+                del list2[0]
+
+
+            for d in dg.nodes():
+
+                # rr = dict_entityRank[int(core_node)][int(d)]
+                rr = get_f(int(core_node), int(d), threshold_dict, dict_entityRank)
+
+                depth = depdict[d]
+                #print(d, rr, rudu[core_node], chudu[core_node], rudu[d], chudu[d], depth)
+
+                fw.write(d + '\t' + str(rr) +'\t'+
+                         str(rudu[core_node]) +'\t'+ str(chudu[core_node]) +'\t'+
+                         str(rudu[d]) +'\t'+ str(chudu[d]) +'\t'+
+                         str(depth) + '\n')
+            fw.close()
+    except Exception as e:
+        print("ERROR!")
+        raise e
 
 
 
@@ -329,30 +350,35 @@ def LogisticRegression(dict_features, file_subGraphs, trainExamples, testExample
 
     print(acc)
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--threads", type=int, default=1)
+    parser.add_argument("--file-data", required=True)
+    args = parser.parse_args()
 
-
-
-if __name__ == "__main__":
-
-    file_data = "../data/TCdata"
+    #file_data = "../data/TCdata"
     #
     # # file_entityRank = file_data + "/ResourceRank_4/"
-    file_subGraphs = file_data + "/subGraphs_4_2/"
+    file_subGraphs = os.path.join(args.file_data, "subGraphs_4/")
     #
     # entity2idfile = file_data + "/FB15K/entity2id.txt"
     # relation2idfile = file_data + "/FB15K/relation2id.txt"
     # entity2vecfile =file_data + "/FB15K_TransE_Entity2Vec_100.txt"
     # relation2vecfile = file_data + "/FB15K_TransE_Relation2Vec_100.txt"
     # datafile = "./model/data.pkl"
-    trainfile = file_data + "/KBE/datasets/FB15k/valid2id.txt"
+    #trainfile = file_data + "/KBE/datasets/FB15k/valid2id.txt"
+    trainfile = os.path.join(args.file_data, "conf_valid2id.txt")
     # devfile = file_data + "/KBE/datasets/FB15k/valid2id.txt"
     # testfile = file_data + "/KBE/datasets/FB15k/test2id.txt"
     # train_transE_file = file_data + "/KBE/datasets/FB15k/valid_TransE_confidence.txt"
     # dev_transE_file = file_data + "/KBE/datasets/FB15k/test_TransE_confidence.txt"
     # test_transE_file = file_data + "/KBE/datasets/FB15k/test_TransE_confidence.txt"
     # path_file = file_data + "/Path_4/"
-    entityRank = file_data + "/entityRank_4_2/"
-    file_RRfeatures = file_data + "/ResourceRank_4_2/"
+    entityRank = os.path.join(args.file_data, "entityRank_4/")
+    file_RRfeatures = os.path.join(args.file_data, "ResourceRank_4/")
+
+    if not os.path.exists(file_RRfeatures):
+        os.mkdir(file_RRfeatures)
 
     print('start...')
 
@@ -369,7 +395,23 @@ if __name__ == "__main__":
     threshold_dict = rrcThreshold(trainExamples, dict_entityRank)
 
     print("Begin features2file.")
-    get_features_2file(dict_entityRank, file_subGraphs, threshold_dict, file_RRfeatures)
+    filelist = os.listdir(file_subGraphs)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=args.threads) as executor:
+        write_futures = [executor.submit(get_features_2file,
+                                         chunk,
+                                         dict_entityRank=dict(dict_entityRank),
+                                         file_subGraphs=str(file_subGraphs),
+                                         threshold_dict=dict(threshold_dict),
+                                         file_RRfeatures=str(file_RRfeatures))
+                         for chunk in enumerate(chunked(filelist, len(filelist)//args.threads))
+                         ]
+        del threshold_dict
+        del dict_entityRank
+        gc.collect()
+        for future in concurrent.futures.as_completed(write_futures):
+            res = future.result()
+
+    #get_features_2file((0, filelist), dict_entityRank, file_subGraphs, threshold_dict, file_RRfeatures)
 
 
 
@@ -394,3 +436,8 @@ if __name__ == "__main__":
     # get_features(dict_entityRank, file_subGraphs, tcTrainExamples)
     # LogisticRegression(dict_entityRank, file_subGraphs, trainExamples, testExamples)
 
+
+
+if __name__ == "__main__":
+    main()
+    

@@ -101,7 +101,8 @@ def compute_paths(headlist, dict_, file_path, line_dict, Ent2V, Rel2V):
         pathlist = []
         taillist = [startnode]
         if pid == 0:
-            print("Searchpath")
+            pass
+            #print("Searchpath")
         Paths = searchpath(startnode, startnode, dict_, taillist, Paths, pathlist, 4)
 
         for head in Paths.keys():
@@ -136,25 +137,48 @@ def compute_paths(headlist, dict_, file_path, line_dict, Ent2V, Rel2V):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--threads", type=int, default=1)
+    parser.add_argument("--file-data", required=True)
     args = parser.parse_args()
-    file_data = "../data/TCdata/"
+    #file_data = "../data/TCdata/"
 
-    file_entity = file_data + "/FB15K/entity2id.txt"
+    #file_data = "/Users/shengbinjia/Documents/GitHub/TCdata"
+    file_data = args.file_data
 
-    file_train = file_data + "/FB15K/golddataset/train2id.txt"
-    file_test = file_data + "/FB15K/golddataset/test2id.txt"
-    file_valid = file_data + "/FB15K/golddataset/valid2id.txt"
-    file_relation = file_data + "/FB15K/relation2id.txt"
-    file_ent2vec = file_data + "/FB15K_PTransE_Entity2Vec_100.txt"
-    file_rel2vec = file_data + "/FB15K_PTransE_Relation2Vec_100.txt"
+    #file_entity = file_data + "/FB15K/entity2id.txt"
+    file_entity = os.path.join(file_data, "entity2id.txt")
+
+    #file_train = file_data + "/FB15K/golddataset/train2id.txt"
+    file_train = os.path.join(file_data, "train2id.txt")
+    #file_test = file_data + "/FB15K/golddataset/test2id.txt"
+    file_test = os.path.join(file_data, "test2id.txt")
+    #file_valid = file_data + "/FB15K/golddataset/valid2id.txt"
+    file_valid = os.path.join(file_data, "valid2id.txt")
+    #file_relation = file_data + "/FB15K/relation2id.txt"
+    file_relation = os.path.join(file_data, "relation2id.txt")
+    #file_ent2vec = file_data + "/FB15K_PTransE_Entity2Vec_100.txt"
+    file_ent2vec = os.path.join(file_data, "PTranse_entity_embeddings.txt")
+    #file_rel2vec = file_data + "/FB15K_PTransE_Relation2Vec_100.txt"
+    file_rel2vec = os.path.join(file_data, "PTranse_relation_embeddings.txt")
+
+    # file_entity = file_data + "/FB15K/entity2id.txt"
+
+    # file_train = file_data + "/FB15K/golddataset/train2id.txt"
+    # file_test = file_data + "/FB15K/golddataset/test2id.txt"
+    # file_valid = file_data + "/FB15K/golddataset/valid2id.txt"
+    # file_relation = file_data + "/FB15K/relation2id.txt"
+    # file_ent2vec = file_data + "/FB15K_PTransE_Entity2Vec_100.txt"
+    # file_rel2vec = file_data + "/FB15K_PTransE_Relation2Vec_100.txt"
 
     # file_train2_neg = file_data + "/KBE/datasets/FB15k/train2id_neg.txt"
     # file_train2_pos = file_data + "/KBE/datasets/FB15k/train2id_pos.txt"
     # file_test2 = file_data + "/KBE/datasets/FB15k/test2id.txt"
     # file_valid2 = file_data + "/KBE/datasets/FB15k/valid2id.txt"
-    file_path = file_data + "/Path_4_4/"
+    file_path = os.path.join(file_data, "Path_4/")
 
-    file_temptest = file_data + "/tmptest.txt"
+    if not os.path.exists(file_path):
+        os.mkdir(file_path)
+
+    file_temptest = os.path.join(file_data, "/tmptest.txt")
     # dict = ReadAllTriples([file_temptest])
 
     dict_ = ReadAllTriples([file_train, file_test, file_valid])
@@ -168,9 +192,10 @@ def main():
     line_dict = {}
     headlist = []
     # for filep in [file_train2_pos, file_test2, file_valid2]:!!!!!!!!!!!!!!!
-    ff = file_data + '/FB15K/KBCdataset/100/'
+    #ff = file_data + '/FB15K/KBCdataset/100/'
     ti = 0
-    for filep in [ff +'/conf_train2id.txt', ff +'/conf_test2id.txt']:
+    for filep in [os.path.join(file_data, 'conf_valid2id.txt'), os.path.join(file_data, 'conf_test2id.txt')]:
+    #for filep in [os.path.join(file_data, 'conf_valid2id.txt'), os.path.join(file_data, 'conf_test2id.txt')]:
         file = open(filep, "r")
         for linet in file:
             list = linet.rstrip('\n').split('\t')
@@ -188,9 +213,9 @@ def main():
 
 
     ci = 0
-    #embed()
     headlist = set(headlist)
     print(len(headlist))
+    #embed()
     print("Before pool.")
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.threads) as executor:
         write_futures = [executor.submit(compute_paths,
@@ -216,7 +241,8 @@ def main():
                     fin = open(file_path + tri[0] + '_' + tri[1] + '_' + tri[2] + '.txt', 'w')
                     fin.close()
                 else:
-                    print('!!!!!!!!!!!!!!!!!')
+                    pass
+                    #print('!!!!!!!!!!!!!!!!!')
 
 
 
