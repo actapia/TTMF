@@ -17,7 +17,10 @@ This software has been tested with the configuration below. Similar configuratio
 * tqdm 4.64.0
 * [python-graph](https://github.com/Shoobx/python-graph/) afd6f1c (Don't confuse this with pygraph.)
 * Bash 5.1.8
-* [optionsh](https://github.com/actapia/optionsh)
+* Some implementation of optionsh:
+    * [optionsh](https://github.com/actapia/optionsh) (C/C++)
+    * [pyoptionsh](https://github.com/actapia/pyoptionsh) (Python 3)
+* [optionsh-bash](https://github.com/actapia/optionsh-bash)
 * Java 11.0.15 (OpenJDK 11.0.15)
 * Maven 3.6.3
 
